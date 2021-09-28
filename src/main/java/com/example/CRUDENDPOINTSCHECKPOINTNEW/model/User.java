@@ -8,9 +8,6 @@ import org.springframework.stereotype.Service;
 import javax.persistence.*;
 
 
-//TODO find out where the JSON views need to go
-//TODO find out if the @service needs to be in the @Entitiy
-//TODO find out best practices for detailed and limited view location
 @Entity
 @Table(name = "user")
 public class User {

@@ -29,10 +29,18 @@ public class UserController {
     @PostMapping("")
     @JsonView(Views.LimitedView.class)
     public Object addMultipleUsers(@RequestBody List<User> users){
-        return this.repository.saveAll(users);
+      return   this.repository.saveAll(users);
     }
 
-    //TODO create a get that returns by user id {id} with a limited view
+
+    @GetMapping("{id}")
+    @JsonView(Views.LimitedView.class)
+    public Object getUserBySpecifiedIDPassedAsAVariable(@PathVariable long id){
+        if(this.repository.findById(id).isEmpty()) {
+            return id + " is not a valid database entry, please contact your system administrator.";
+        }
+        return this.repository.findById(id);
+    }
 
     //TODO create a patch that edits existing rows and displays in a limited view
 
