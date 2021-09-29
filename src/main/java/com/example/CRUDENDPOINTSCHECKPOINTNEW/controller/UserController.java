@@ -3,6 +3,7 @@ package com.example.CRUDENDPOINTSCHECKPOINTNEW.controller;
 import com.example.CRUDENDPOINTSCHECKPOINTNEW.Views;
 import com.example.CRUDENDPOINTSCHECKPOINTNEW.model.User;
 import com.example.CRUDENDPOINTSCHECKPOINTNEW.repository.UserRepository;
+import com.example.CRUDENDPOINTSCHECKPOINTNEW.services.UserServices;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,41 +14,68 @@ import java.util.List;
 public class UserController {
 
     UserRepository repository;
+    UserServices userServices;
 
 
-
-    public UserController(UserRepository repository) {
+    public UserController(UserRepository repository, UserServices userServices) {
         this.repository = repository;
+        this.userServices = userServices;
     }
 
     @GetMapping("")
     @JsonView(Views.LimitedView.class)
-    public Object getAllFromDatabase(){
+    public Object getAllFromDatabase() {
         return this.repository.findAll();
     }
 
     @PostMapping("")
     @JsonView(Views.LimitedView.class)
-    public Object addMultipleUsers(@RequestBody List<User> users){
-      return   this.repository.saveAll(users);
+    public Object addMultipleUsers(@RequestBody List<User> users) {
+        return this.repository.saveAll(users);
     }
 
 
     @GetMapping("{id}")
     @JsonView(Views.LimitedView.class)
-    public Object getUserBySpecifiedIDPassedAsAVariable(@PathVariable long id){
-        if(this.repository.findById(id).isEmpty()) {
+    public Object getUserBySpecifiedIDPassedAsAVariable(@PathVariable long id) {
+        if (this.repository.findById(id).isEmpty()) {
             return id + " is not a valid database entry, please contact your system administrator.";
         }
         return this.repository.findById(id);
     }
 
-    //TODO create a patch that edits existing rows and displays in a limited view
+    @PatchMapping("{id}")
+    @JsonView(Views.DetailedView.class)
+    public Object patchUserByID(@PathVariable long id, @RequestBody User user) {
+        if (this.repository.findById(id).isEmpty()) {
+            return id + " is not a valid databse entry, please contact your local administrator.";
+        } else {
+            return this.repository.save(userServices.checkForNull(id, user));
+        }
+    }
 
-    //TODO create a delete request that deletes by user id {id} and returns the number of users left in the database
 
-    //TODO create a endpoint that takes a post request, checks that he email and password match, if it matches return
-    //TODO a custom message, if it doesn't mathc it returns a custom message
+    @DeleteMapping("{id}")
+    @JsonView(Views.LimitedView.class)
+    public Object deleteRowByIdThenReturnTotalOfTableRowsBackToTheUser(@PathVariable long id){
+        if (this.repository.findById(id).isEmpty()){
+            return id + " is not a valid databse entry, please contact your local administrator.";
+        } else
+           return userServices.deleteIDAndReturnRemainingTableSize(id);
+    }
+
+    @PostMapping("/authenticate")
+    @JsonView(Views.DetailedView.class)
+    public Object checkForUserPasswordAndAuthenticate(@RequestBody User user){
+       return userServices.checkPasswordAgainstEmail(user);
+    }
+
+    @DeleteMapping("/deleteall")
+    public String deleteAllUsers(){
+       this.repository.deleteAll();
+       return "Database cleared of all instances.";
+    }
+
 
 
 }
